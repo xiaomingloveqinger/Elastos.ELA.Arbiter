@@ -1,0 +1,53 @@
+﻿{
+  "Configuration": {
+    "Magic": 7630402,
+    "Version": 0,
+    "SeedList": [
+      "127.0.0.1:20338"
+    ],
+    "NodePort": 10338,
+    "PrintLevel": 1,
+    "SpvPrintLevel": 4,
+    "HttpJsonPort": 10336,
+    "MainNode": {
+      "Rpc": {
+        "IpAddress": "127.0.0.1",
+        "HttpJsonPort": 11336
+      },
+     "SpvSeedList": [
+       "127.0.0.1:20866"
+    ],
+     "Magic": 7630401,
+     "MinOutbound": 1,
+     "MaxConnections": 3,
+     "FoundationAddress": "8VYXVxKKSAxkmRrfmGpQR2Kc66XhG6m3ta",
+     "DefaultPort": 20866
+    },
+    "SideNodeList": [
+      {
+        "Rpc": {
+          "IpAddress": "127.0.0.1",
+          "HttpJsonPort": 13336
+        },
+		"ExchangeRate": 1.0,
+        "GenesisBlock": "56be936978c261b2e649d58dbfaf3f23d4a868274f5522cd2adb4308a955c4a3",
+        "KeystoreFile": "keystore1.dat",
+        "PayToAddr": "ERtJFJaEfmABKDy3Afbrpwb6nDrRUGkZ6k",
+        "PowChain": true
+      }
+    ],
+    "MinThreshold": 10000000,
+    "DepositAmount": 10000000,
+    "SyncInterval": 1000,
+    "SideChainMonitorScanInterval": 1000,
+    "ClearTransactionInterval": 60000,
+    "MinReceivedUsedUtxoMsgNumber": 1,
+    "MinOutbound": 3,
+    "MaxConnections": 8,
+    "SideAuxPowFee": 50000,
+    "MaxLogsSize": 0,
+    "MaxPerLogSize": 0,
+    "LogPath": "",
+    "SPVLogPath": ""
+  }
+}
