@@ -14,8 +14,8 @@ import (
 	"github.com/elastos/Elastos.ELA.Arbiter/log"
 
 	"github.com/elastos/Elastos.ELA.SPV/bloom"
-	. "github.com/elastos/Elastos.ELA.Utility/common"
-	. "github.com/elastos/Elastos.ELA/core"
+	. "github.com/elastos/Elastos.ELA/common"
+	. "github.com/elastos/Elastos.ELA/core/types"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -84,8 +84,8 @@ type DataStoreUTXO interface {
 	DataStore
 
 	CurrentHeight(height uint32) uint32
-	AddAddressUTXO(utxo *AddressUTXO) error
-	DeleteUTXO(input *Input) error
+	AddAddressUTXOs(utxos []*AddressUTXO) error
+	DeleteUTXOs(inputs []*Input) error
 	GetAddressUTXOsFromGenesisBlockAddress(genesisBlockAddress string) ([]*AddressUTXO, error)
 }
 
@@ -342,52 +342,68 @@ func (store *DataStoreUTXOImpl) CurrentHeight(height uint32) uint32 {
 	return storedHeight
 }
 
-func (store *DataStoreUTXOImpl) AddAddressUTXO(utxo *AddressUTXO) error {
+func (store *DataStoreUTXOImpl) AddAddressUTXOs(utxos []*AddressUTXO) error {
 	store.mux.Lock()
 	defer store.mux.Unlock()
 
+	tx, err := store.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Commit()
+
 	// Prepare sql statement
-	stmt, err := store.Prepare("INSERT INTO UTXOs(UTXOInput, Amount, GenesisBlockAddress) values(?,?,?)")
+	stmt, err := tx.Prepare("INSERT INTO UTXOs(UTXOInput, Amount, GenesisBlockAddress) values(?,?,?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	// Serialize input
-	buf := new(bytes.Buffer)
-	utxo.Input.Serialize(buf)
-	inputBytes := buf.Bytes()
-	// Serialize amount
-	buf = new(bytes.Buffer)
-	utxo.Amount.Serialize(buf)
-	amountBytes := buf.Bytes()
-	// Do insert
-	_, err = stmt.Exec(inputBytes, amountBytes, utxo.GenesisBlockAddress)
-	if err != nil {
-		return err
+	for _, utxo := range utxos {
+		// Serialize input
+		buf := new(bytes.Buffer)
+		utxo.Input.Serialize(buf)
+		inputBytes := buf.Bytes()
+		// Serialize amount
+		buf = new(bytes.Buffer)
+		utxo.Amount.Serialize(buf)
+		amountBytes := buf.Bytes()
+		// Do insert
+		_, err = stmt.Exec(inputBytes, amountBytes, utxo.GenesisBlockAddress)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (store *DataStoreUTXOImpl) DeleteUTXO(input *Input) error {
+func (store *DataStoreUTXOImpl) DeleteUTXOs(inputs []*Input) error {
 	store.mux.Lock()
 	defer store.mux.Unlock()
 
+	tx, err := store.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Commit()
+
 	// Prepare sql statement
-	stmt, err := store.Prepare("DELETE FROM UTXOs WHERE UTXOInput=?")
+	stmt, err := tx.Prepare("DELETE FROM UTXOs WHERE UTXOInput=?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	// Serialize input
-	buf := new(bytes.Buffer)
-	input.Serialize(buf)
-	inputBytes := buf.Bytes()
-	// Do delete
-	_, err = stmt.Exec(inputBytes)
-	if err != nil {
-		return err
+	for _, input := range inputs {
+		// Serialize input
+		buf := new(bytes.Buffer)
+		input.Serialize(buf)
+		inputBytes := buf.Bytes()
+		// Do delete
+		_, err = stmt.Exec(inputBytes)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

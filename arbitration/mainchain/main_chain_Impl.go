@@ -14,10 +14,12 @@ import (
 	"github.com/elastos/Elastos.ELA.Arbiter/rpc"
 	. "github.com/elastos/Elastos.ELA.Arbiter/store"
 
-	. "github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/p2p"
-	"github.com/elastos/Elastos.ELA.Utility/p2p/peer"
-	. "github.com/elastos/Elastos.ELA/core"
+	. "github.com/elastos/Elastos.ELA/common"
+	"github.com/elastos/Elastos.ELA/core/contract/program"
+	. "github.com/elastos/Elastos.ELA/core/types"
+	"github.com/elastos/Elastos.ELA/core/types/payload"
+	"github.com/elastos/Elastos.ELA/p2p"
+	"github.com/elastos/Elastos.ELA/p2p/peer"
 )
 
 type MainChainImpl struct {
@@ -245,11 +247,11 @@ func (mc *MainChainImpl) CreateWithdrawTransaction(sideChain SideChain, withdraw
 		txHashes = append(txHashes, *txHash)
 	}
 
-	txPayload := &PayloadWithdrawFromSideChain{
+	txPayload := &payload.PayloadWithdrawFromSideChain{
 		BlockHeight:                chainHeight,
 		GenesisBlockAddress:        withdrawBank,
 		SideChainTransactionHashes: txHashes}
-	program := &Program{redeemScript, nil}
+	p := &program.Program{redeemScript, nil}
 
 	// Create attributes
 	txAttr := NewAttribute(Nonce, []byte(strconv.FormatInt(rand.Int63(), 10)))
@@ -262,7 +264,7 @@ func (mc *MainChainImpl) CreateWithdrawTransaction(sideChain SideChain, withdraw
 		Attributes: attributes,
 		Inputs:     txInputs,
 		Outputs:    txOutputs,
-		Programs:   []*Program{program},
+		Programs:   []*program.Program{p},
 		LockTime:   uint32(0),
 	}, nil
 }
@@ -298,6 +300,8 @@ func (mc *MainChainImpl) SyncChainData() {
 			}
 			currentHeight += 1
 		}
+		// Update wallet height
+		currentHeight = DbCache.UTXOStore.CurrentHeight(currentHeight)
 	}
 }
 
@@ -306,10 +310,8 @@ func (mc *MainChainImpl) syncAndProcessBlock(currentHeight uint32) error {
 	if err != nil {
 		return err
 	}
-	mc.processBlock(block, currentHeight)
 
-	// Update wallet height
-	currentHeight = DbCache.UTXOStore.CurrentHeight(block.Height)
+	mc.processBlock(block, currentHeight)
 	return nil
 }
 
@@ -357,6 +359,8 @@ func (mc *MainChainImpl) processBlock(block *BlockInfo, height uint32) {
 	log.Info("[processBlock] block height:", block.Height, "current height:", height)
 	sideChains := ArbitratorGroupSingleton.GetCurrentArbitrator().GetSideChainManager().GetAllChains()
 	// Add UTXO to wallet address from transaction outputs
+	utxos := make([]*AddressUTXO, 0)
+	inputs := make([]*Input, 0)
 	for _, txnInfo := range block.Tx {
 		var txn TransactionInfo
 		rpc.Unmarshal(&txnInfo, &txn)
@@ -387,7 +391,7 @@ func (mc *MainChainImpl) processBlock(block *BlockInfo, height uint32) {
 					GenesisBlockAddress: output.Address,
 				}
 				if *amount > Fixed64(0) {
-					DbCache.UTXOStore.AddAddressUTXO(addressUTXO)
+					utxos = append(utxos, addressUTXO)
 				}
 			}
 		}
@@ -404,9 +408,11 @@ func (mc *MainChainImpl) processBlock(block *BlockInfo, height uint32) {
 				Previous: outPoint,
 				Sequence: input.Sequence,
 			}
-			DbCache.UTXOStore.DeleteUTXO(txInput)
+			inputs = append(inputs, txInput)
 		}
 	}
+	DbCache.UTXOStore.AddAddressUTXOs(utxos)
+	DbCache.UTXOStore.DeleteUTXOs(inputs)
 
 	for _, sc := range sideChains {
 		sc.ClearLastUsedOutPoints()

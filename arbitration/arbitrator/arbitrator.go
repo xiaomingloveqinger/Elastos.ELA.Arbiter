@@ -14,14 +14,14 @@ import (
 	"github.com/elastos/Elastos.ELA.Arbiter/wallet"
 
 	. "github.com/elastos/Elastos.ELA.SPV/interface"
-	"github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/crypto"
-	. "github.com/elastos/Elastos.ELA/core"
+	"github.com/elastos/Elastos.ELA/common"
+	. "github.com/elastos/Elastos.ELA/core/types"
+	"github.com/elastos/Elastos.ELA/crypto"
 )
 
 const (
-	SCErrDoubleSpend          int64 = 45010
 	SCErrMainchainTxDuplicate int64 = 45013
+	ErrInvalidMainchainTx     int64 = 45022
 )
 
 var SpvService SPVService
@@ -169,7 +169,7 @@ func (ar *ArbitratorImpl) SendDepositTransactions(spvTxs []*SpvTransaction, gene
 	for _, tx := range spvTxs {
 		hash := tx.MainChainTransaction.Hash()
 		resp, err := sideChain.SendTransaction(&hash)
-		if err != nil || resp.Error != nil && resp.Code != SCErrDoubleSpend {
+		if err != nil || resp.Error != nil && resp.Code != ErrInvalidMainchainTx {
 			log.Warn("Send deposit transaction failed, move to finished db, main chain tx hash:", hash.String())
 			failedMainChainTxHashes = append(failedMainChainTxHashes, hash.String())
 			failedGenesisAddresses = append(failedGenesisAddresses, genesisAddress)
