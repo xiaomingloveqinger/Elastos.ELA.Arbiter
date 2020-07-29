@@ -229,6 +229,7 @@ func (ar *ArbitratorImpl) SendWithdrawTransaction(txn *types.Transaction) (rpc.R
 	resp, err := rpc.CallAndUnmarshalResponse("sendrawtransaction",
 		rpc.Param("data", content), config.Parameters.MainNode.Rpc)
 	if err != nil {
+		log.Error("SendWithdrawTransaction",err.Error())
 		return rpc.Response{}, err
 	}
 
