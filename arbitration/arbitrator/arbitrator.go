@@ -224,15 +224,21 @@ func (ar *ArbitratorImpl) SendWithdrawTransaction(txn *types.Transaction) (rpc.R
 	if err != nil {
 		return rpc.Response{}, err
 	}
-
+	log.Warn("----- 1 ")
 	log.Info("[Rpc-sendrawtransaction] Withdraw transaction to main chain：", config.Parameters.MainNode.Rpc.IpAddress, ":", config.Parameters.MainNode.Rpc.HttpJsonPort)
 	resp, err := rpc.CallAndUnmarshalResponse("sendrawtransaction",
 		rpc.Param("data", content), config.Parameters.MainNode.Rpc)
 	if err != nil {
-		log.Error("SendWithdrawTransaction",err.Error())
+		log.Error("SendWithdrawTransaction error",err.Error())
 		return rpc.Response{}, err
 	}
-
+	log.Warn("----- 2 ")
+	if resp.Result != nil {
+		log.Warnf("Resp result %v ",resp.Result)
+	}
+	if resp.Error != nil {
+		log.Warnf("Resp Error code = %d, message = %s",resp.Error.Code,resp.Error.Message)
+	}
 	return resp, nil
 }
 
