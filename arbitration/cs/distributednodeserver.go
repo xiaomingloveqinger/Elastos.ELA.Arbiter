@@ -188,6 +188,8 @@ func (dns *DistributedNodeServer) ReceiveProposalFeedback(content []byte) error 
 	if err != nil {
 		return err
 	}
+	needSign := getTransactionAgreementArbitratorsCount(len(arbitrator.ArbitratorGroupSingleton.GetAllArbitrators()))
+	log.Info("current signedCountCount ", signedCount, ", need sign at least ", needSign)
 	if signedCount >= getTransactionAgreementArbitratorsCount(len(arbitrator.ArbitratorGroupSingleton.GetAllArbitrators())) {
 		dns.mux.Lock()
 		delete(dns.unsolvedContents, txn.Hash())

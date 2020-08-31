@@ -1,6 +1,7 @@
 package mainchain
 
 import (
+	"encoding/hex"
 	"errors"
 	"math/rand"
 	"strconv"
@@ -96,6 +97,7 @@ func (mc *MainChainImpl) createAndSendDepositTransactionsInDB(sideChain arbitrat
 }
 
 func (mc *MainChainImpl) OnReceivedSignMsg(id peer2.PID, content []byte) {
+	log.Info("Receiving Sign Msg From Arbiter ", hex.EncodeToString(id[:]))
 	if err := mc.ReceiveProposalFeedback(content); err != nil {
 		log.Error("[OnReceivedSignMsg] mainchain received distributed item message error: ", err)
 	}
