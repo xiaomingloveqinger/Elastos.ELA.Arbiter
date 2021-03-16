@@ -10,7 +10,7 @@ import (
 func MoniterFailedDepositTransfer() {
 	for {
 		select {
-		case <-time.After(time.Second * 1):
+		case <-time.After(time.Minute * 1):
 
 			currentArbitrator, ok := ArbitratorGroupSingleton.GetCurrentArbitrator().(*ArbitratorImpl)
 			if !ok {
@@ -36,7 +36,7 @@ func MoniterFailedDepositTransfer() {
 					}
 
 					if !ArbitratorGroupSingleton.GetCurrentArbitrator().IsOnDutyOfMain() {
-						log.Warn("[FailedWithdrawTransfer] i am not onduty")
+						log.Warn("[FailedDepositTransfer] i am not onduty")
 						return
 					}
 
@@ -48,7 +48,7 @@ func MoniterFailedDepositTransfer() {
 
 					err = curr.SendFailedDepositTxs(failedTxsUint256, cfg.GenesisBlockAddress)
 					if err != nil {
-						log.Error("[ReceiveSendLastArbiterUsedUtxos] CreateAndBroadcastWithdrawProposal failed")
+						log.Error("[FailedDepositTransfer] CreateAndBroadcastWithdrawProposal failed")
 						break
 					}
 				}

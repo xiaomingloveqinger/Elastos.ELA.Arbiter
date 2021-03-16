@@ -2,13 +2,12 @@ package cs
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
+	"github.com/elastos/Elastos.ELA.Arbiter/log"
 	"io"
 
 	"github.com/elastos/Elastos.ELA.Arbiter/arbitration/arbitrator"
-	"github.com/elastos/Elastos.ELA.Arbiter/config"
-	"github.com/elastos/Elastos.ELA.Arbiter/rpc"
-
 	"github.com/elastos/Elastos.ELA/common"
 	"github.com/elastos/Elastos.ELA/core/types/payload"
 )
@@ -76,9 +75,14 @@ func (i *IllegalDepositTx) Submit() error {
 	}
 
 	content := common.BytesToHexString(buf.Bytes())
-	if _, err = rpc.CallAndUnmarshalResponse("submitillegaldeposittxsdata",
-		rpc.Param("illegaldeposittxsdata", content), config.Parameters.MainNode.Rpc); err != nil {
-		return err
+	//if _, err = rpc.CallAndUnmarshalResponse("submitillegaldeposittxsdata",
+	//	rpc.Param("illegaldeposittxsdata", content), config.Parameters.MainNode.Rpc); err != nil {
+	//	return err
+	//}
+	log.Infof("Data has been signed by 2/3 Arbiters %s ", content)
+	log.Info("Signatures ")
+	for i , v :=range i.DepositTxs.Signs {
+		log.Info("index ", i , " hex ", hex.EncodeToString(v))
 	}
 	return nil
 }
