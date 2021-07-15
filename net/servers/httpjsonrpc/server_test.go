@@ -2,15 +2,17 @@ package httpjsonrpc
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/elastos/Elastos.ELA.Arbiter/arbitration/base"
+	"github.com/elastos/Elastos.ELA.Arbiter/config"
+	"github.com/elastos/Elastos.ELA.Arbiter/log"
+	"github.com/elastos/Elastos.ELA/utils/test"
 	"net"
 	"net/http"
 	"testing"
 	"time"
-	"github.com/elastos/Elastos.ELA.Arbiter/config"
-	"github.com/elastos/Elastos.ELA.Arbiter/log"
-	"github.com/elastos/Elastos.ELA/utils/test"
 )
 
 //if bRunServer is true .run server for every testcase
@@ -495,4 +497,30 @@ func TestServer_WithIp0000(t *testing.T) {
 	urlLoopbackWithAuthWrongUserTest(urlLoopBack, true, http.StatusUnauthorized, t)
 
 	Wait()
+}
+func TestServer_RegisterSidechainRpcInfo(t *testing.T) {
+	info := base.RegisterSidechainRpcInfo{
+		GenesisBlockHash: "3dcf06c5a64e92c88edf31ca63b9193a5d6bac6d09a04766b2b7faa88eadd9e1",
+		Httpjsonport:     20336,
+		IpAddr:           "10.60.112.48",
+		User:             "",
+		Pass:             "",
+	}
+
+	infoBuf, err := json.Marshal(&info)
+	if err != nil {
+		log.Errorf(err.Error())
+	}
+
+	infoStr := hex.EncodeToString(infoBuf)
+
+	type RPCinfo struct {
+		Data string `json:"data"`
+	}
+
+	ri := RPCinfo{
+		Data: infoStr,
+	}
+
+	fmt.Printf("%v", ri.Data)
 }
