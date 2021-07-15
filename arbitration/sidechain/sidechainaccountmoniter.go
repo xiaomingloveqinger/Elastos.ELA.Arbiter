@@ -23,7 +23,7 @@ import (
 const sideChainHeightInterval uint32 = 1000
 
 var (
-	Initialized bool
+	Initialized             bool
 	SideChainAccountMonitor SideChainAccountMonitorImpl
 )
 
@@ -86,11 +86,12 @@ func (monitor *SideChainAccountMonitorImpl) fireIllegalEvidenceFound(evidence *p
 func (monitor *SideChainAccountMonitorImpl) SyncChainData(sideNode *config.SideNodeConfig, curr arbitrator.SideChain) {
 	for {
 		time.Sleep(time.Millisecond * config.Parameters.SideChainMonitorScanInterval)
-
+		log.Info("## 444")
 		if !Initialized {
 			log.Info("Not initialized yet")
 			continue
 		}
+		log.Info("## 555")
 		log.Info("side chain SyncChainData ,", sideNode.SupportQuickRecharge, sideNode.Rpc.IpAddress, sideNode.Rpc.HttpJsonPort)
 		chainHeight, currentHeight, needSync := monitor.needSyncBlocks(sideNode.GenesisBlockAddress, sideNode.Rpc)
 		log.Info("chainheight , currentHeight ", chainHeight, currentHeight)

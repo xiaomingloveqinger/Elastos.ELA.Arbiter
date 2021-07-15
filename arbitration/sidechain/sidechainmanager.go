@@ -22,16 +22,16 @@ func (sideManager *SideChainManagerImpl) OnReceivedRegisteredSideChain(info base
 		return errors.New("[OnReceivedRegisteredSideChain] %s" + err.Error())
 	}
 
+	log.Info("## ", len(txs))
 	if len(txs) == 0 {
 		log.Info("No cached register sidechain transaction need to send")
 		return nil
 	}
 
 	for _, transaction := range txs {
-		if err != nil {
-			return errors.New("[OnReceivedRegisteredSideChain] %s" + err.Error())
-		}
+		log.Info("## ", transaction.RegisteredSideChain.GenesisHash.String(), info.GenesisBlockHash)
 		if transaction.RegisteredSideChain.GenesisHash.String() == info.GenesisBlockHash {
+			log.Info("## 111")
 			side := &SideChainImpl{
 				Key: transaction.GenesisBlockAddress,
 				CurrentConfig: &config.SideNodeConfig{
@@ -52,8 +52,9 @@ func (sideManager *SideChainManagerImpl) OnReceivedRegisteredSideChain(info base
 
 			sideManager.AddChain(transaction.GenesisBlockAddress, side)
 			SideChainAccountMonitor.AddListener(side)
+			log.Info("## 333")
 			go SideChainAccountMonitor.SyncChainData(side.CurrentConfig, side)
-
+			log.Info("## 222")
 			err = store.DbCache.RegisteredSideChainStore.RemoveRegisteredSideChainTx(transaction.TransactionHash, transaction.GenesisBlockAddress)
 			if err != nil {
 				return errors.New("[OnReceivedRegisteredSideChain] RemoveRegisteredSideChainTx %s" + err.Error())

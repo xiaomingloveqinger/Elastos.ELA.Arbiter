@@ -8,6 +8,7 @@ import (
 	"github.com/elastos/Elastos.ELA.Arbiter/arbitration/base"
 	"github.com/elastos/Elastos.ELA.Arbiter/config"
 	"github.com/elastos/Elastos.ELA.Arbiter/log"
+	"github.com/elastos/Elastos.ELA/common"
 	"github.com/elastos/Elastos.ELA/utils/test"
 	"net"
 	"net/http"
@@ -500,9 +501,9 @@ func TestServer_WithIp0000(t *testing.T) {
 }
 func TestServer_RegisterSidechainRpcInfo(t *testing.T) {
 	info := base.RegisterSidechainRpcInfo{
-		GenesisBlockHash: "3dcf06c5a64e92c88edf31ca63b9193a5d6bac6d09a04766b2b7faa88eadd9e1",
-		Httpjsonport:     20336,
-		IpAddr:           "10.60.112.48",
+		GenesisBlockHash: "7a664cc745270e4a849bb97f001b54e295ae6b42bd9f7bf3cf4ac457522ffc5c",
+		Httpjsonport:     20821,
+		IpAddr:           "172.16.0.29",
 		User:             "",
 		Pass:             "",
 	}
@@ -523,4 +524,18 @@ func TestServer_RegisterSidechainRpcInfo(t *testing.T) {
 	}
 
 	fmt.Printf("%v", ri.Data)
+
+	bys, err := common.HexStringToBytes(ri.Data)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return
+	}
+	rpcDetails := &base.RegisterSidechainRpcInfo{}
+	err = json.Unmarshal(bys, rpcDetails)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return
+	}
+
+	fmt.Println("hello world")
 }
