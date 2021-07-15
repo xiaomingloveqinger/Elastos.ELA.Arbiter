@@ -187,7 +187,7 @@ func GetBlockByHash(hash *common.Uint256, config *config.RpcConfig) (*base.Block
 }
 
 func GetRegisterTransactionByHeight(height uint32, config *config.RpcConfig) ([]*base.RegisteredSideChainTransaction, error) {
-	resp, err := CallAndUnmarshal("getregistertransactionsbyheight", Param("height", height), config)
+	resp, err := CallAndUnmarshal("getallregistertransactions", nil, config)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,11 @@ func GetRegisterTransactionByHeight(height uint32, config *config.RpcConfig) ([]
 		return nil, err
 	}
 	for _, v := range result {
-		address, err := base.GetGenesisAddress(v.GenesisHash)
+		genesisHashUint256, err := common.Uint256FromHexString(v.GenesisHash)
+		if err != nil {
+			return nil, err
+		}
+		address, err := base.GetGenesisAddress(*genesisHashUint256)
 		if err != nil {
 			log.Error("[GetRegisterTransactionByHeight] GetGenesisAddress from genesis hash error", err.Error())
 			return nil, err
@@ -209,7 +213,7 @@ func GetRegisterTransactionByHeight(height uint32, config *config.RpcConfig) ([]
 				MagicNumber:            v.MagicNumber,
 				DNSSeeds:               v.DNSSeeds,
 				NodePort:               v.NodePort,
-				GenesisHash:            v.GenesisHash,
+				GenesisHash:            *genesisHashUint256,
 				GenesisBlockDifficulty: v.GenesisBlockDifficulty,
 				GenesisTimestamp:       v.GenesisTimestamp,
 				UpgradeProposalType:    v.UpgradeProposalType,
@@ -219,7 +223,7 @@ func GetRegisterTransactionByHeight(height uint32, config *config.RpcConfig) ([]
 				Pass:                   "",
 			},
 			GenesisBlockAddress: address,
-			TransactionHash:     v.TxHash.String(),
+			TransactionHash:     v.TxHash,
 		})
 	}
 	log.Debug("[GetWithdrawTransactionByHeight] len transactions:", len(txs))
